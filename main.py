@@ -2,6 +2,7 @@ import math, copy, random
 from cmu_112_graphics import *
 
 
+
 def gameDimensions():
     # These values are set to the writeup defaults
     cellSize = 40
