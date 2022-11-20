@@ -1,8 +1,6 @@
 import math, copy, random
 from cmu_112_graphics import *
-from map import *
 
-map = Map(5)
 
 def gameDimensions():
     # These values are set to the writeup defaults
