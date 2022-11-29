@@ -45,13 +45,20 @@ def appStarted(app):
     app.cellSize = gameDimensions()
     app.rows = len(app.board)
     app.cols = len(app.board[0])
+    app.score = 0 
 
     app.playerPos = [1, 1]
     app.board[app.playerPos[0]][app.playerPos[1]] = 2
     app.playerDirection = None
 
-    #app.timerDelay = 300
+    app.police1 = [app.rows - 2, app.cols -2]
+    app.board[app.police1[0]][app.police1[1]] = 3
+    app.police1_direction = None
 
+    app.isGameOver = False
+    app.timerDelay = 300
+
+# visualizers 
 def drawBoard(app, canvas): 
     for row in range(app.rows): 
         for col in range(app.cols): 
@@ -69,12 +76,28 @@ def drawCell(app, canvas, row, col, tileStatus):
         color = 'white'
     elif(tileStatus == 2): 
         color = 'red'
+    elif(tileStatus == 3): 
+        color = 'black'
     canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline='black')
 
+def drawScore(app, canvas): 
+    canvas.create_text(app.width/2, app.cellSize/2, fill="black", 
+         text= f"Score: {app.score}", font=('Helvetica','20','bold'))
+    
+def drawGameOver(app, canvas): 
+    canvas.create_text(app.width/2, app.height/2, fill="black", 
+         text= f"Game Over", font=('Helvetica','40','bold'))
+
+# player movement 
 def timerFired(app):
-    app.board[app.playerPos[0]][app.playerPos[1]] = 0
-    movePlayer(app, app.playerDirection)
-    app.board[app.playerPos[0]][app.playerPos[1]] = 2
+    if app.isGameOver == False: 
+        app.board[app.playerPos[0]][app.playerPos[1]] = 0
+        movePlayer(app, app.playerDirection)
+        app.board[app.playerPos[0]][app.playerPos[1]] = 2
+        app.score += 5
+        if(checkIfCaught(app)): 
+            app.isGameOver = True 
+    print(app.isGameOver)
 
 def movePlayer(app, direction): 
     if(direction == None): 
@@ -92,7 +115,8 @@ def moveIsLegal(app, direction):
         == 0): 
         return True
     return False
-    
+
+# key press
 def keyPressed(app, event): 
     if (event.key == 'Left'):
         if moveIsLegal(app, [0, -1]): 
@@ -107,8 +131,18 @@ def keyPressed(app, event):
         if moveIsLegal(app, [-1, 0]):
             app.playerDirection = [-1, 0]
 
+# game over 
+def checkIfCaught(app): # caught = police is in a neighboring tile to player 
+    if(abs(app.playerPos[0] - app.police1[0]) <= 1 and 
+        abs(app.playerPos[1] - app.police1[1]) <= 1): 
+        return True 
+    return False
+
 def redrawAll(app, canvas): 
     drawBoard(app, canvas)
+    drawScore(app, canvas)
+    if app.isGameOver: 
+        drawGameOver(app, canvas)
 
 def playGame():
     grid = generateGrid(5)
