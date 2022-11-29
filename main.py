@@ -1,8 +1,6 @@
 import math, copy, random
 from cmu_112_graphics import *
 
-
-
 def gameDimensions():
     # These values are set to the writeup defaults
     cellSize = 40
@@ -91,9 +89,17 @@ def drawGameOver(app, canvas):
 # player movement 
 def timerFired(app):
     if app.isGameOver == False: 
+        # player moving
         app.board[app.playerPos[0]][app.playerPos[1]] = 0
         movePlayer(app, app.playerDirection)
         app.board[app.playerPos[0]][app.playerPos[1]] = 2
+
+        #police moving 
+        app.board[app.police1[0]][app.police1[1]] = 0
+        movePolice1(app)
+        app.board[app.police1[0]][app.police1[1]] = 3
+
+        # score 
         app.score += 5
         if(checkIfCaught(app)): 
             app.isGameOver = True 
@@ -116,7 +122,6 @@ def moveIsLegal(app, direction):
         return True
     return False
 
-# key press
 def keyPressed(app, event): 
     if (event.key == 'Left'):
         if moveIsLegal(app, [0, -1]): 
@@ -130,6 +135,52 @@ def keyPressed(app, event):
     elif (event.key == 'Up'): 
         if moveIsLegal(app, [-1, 0]):
             app.playerDirection = [-1, 0]
+
+# police movement 
+def policeHeuristics(app, police): 
+    row = police[0]
+    col = police[1]
+    moves = {"left":[row, col-1], "right":[row, col+1], "up":[row+1, col], "down":[row-1, col]}
+    #moves = [[y, x+1], [y, x-1], [y+1, x], [y-1, x]]
+    heuristics = dict()
+
+    for move in moves:  
+        print(moves[move][0])
+        print(moves[move][1])
+        print(app.board[moves[move][0]][moves[move][1]])
+        if(app.board[moves[move][0]][moves[move][1]] == 0): 
+            heuristics[move]=(math.sqrt
+                    ((moves[move][0]-app.playerPos[0])**2
+                    + (moves[move][1] - app.playerPos[1])**2))
+    
+    print(heuristics)
+    return heuristics
+
+def getPoliceDirection(app, police): 
+    heuristics = policeHeuristics(app, police)
+    bestHeuristic = None
+    bestDirection = None
+    for direction in heuristics: 
+        if bestHeuristic == None: 
+            bestHeuristic = heuristics[direction]
+            bestDirection = direction
+        elif heuristics[direction] < bestHeuristic: 
+            bestHeuristic = heuristics[direction]
+            bestDirection = direction
+    return bestDirection
+
+def movePolice1(app): 
+    direction = getPoliceDirection(app, app.police1)
+    if direction == "left": 
+        app.police1_direction = [0, -1]
+    elif direction == "right": 
+        app.police1_direction = [0, 1]
+    elif direction == "up":
+        app.police1_direction = [1, 0] 
+    elif direction == "down": 
+        app.police1_direction = [-1, 0] 
+    app.police1[0] += app.police1_direction[0]
+    app.police1[1] += app.police1_direction[1]
 
 # game over 
 def checkIfCaught(app): # caught = police is in a neighboring tile to player 
