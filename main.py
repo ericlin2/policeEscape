@@ -39,7 +39,7 @@ def generateGrid(size):
     return grid
 
 def appStarted(app):
-    app.board = generateGrid(5)
+    app.board = generateGrid(6)
     app.cellSize = gameDimensions()
     app.rows = len(app.board)
     app.cols = len(app.board[0])
@@ -61,8 +61,19 @@ def appStarted(app):
     app.board[app.police3[0]][app.police3[1]] = 3
     app.police3_direction = None
 
+    app.powerup = spawnPowerups(app) 
+    app.board[app.powerup[0]][app.powerup[1]] = 4
+
     app.isGameOver = False
     app.timerDelay = 300
+
+def spawnPowerups(app): 
+    row = random.randint(0, app.rows - 1)
+    col = random.randint(0, app.cols - 1)
+    if(app.board[row][col] == 0): 
+        return [row, col]
+    else: 
+        return spawnPowerups(app)
 
 # visualizers 
 def drawBoard(app, canvas): 
@@ -84,6 +95,8 @@ def drawCell(app, canvas, row, col, tileStatus):
         color = 'red'
     elif(tileStatus == 3): 
         color = 'black'
+    elif(tileStatus == 4): 
+        color = 'green'
     canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline='black')
 
 def drawScore(app, canvas): 
@@ -100,7 +113,13 @@ def timerFired(app):
         # player moving
         app.board[app.playerPos[0]][app.playerPos[1]] = 0
         movePlayer(app, app.playerDirection)
+        if app.board[app.playerPos[0]][app.playerPos[1]] == 4: 
+            app.score += 100
+            app.powerup = spawnPowerups(app) 
+            app.board[app.powerup[0]][app.powerup[1]] = 4
         app.board[app.playerPos[0]][app.playerPos[1]] = 2
+
+        
 
         #police1 moving 
         app.board[app.police1[0]][app.police1[1]] = 0
@@ -136,7 +155,9 @@ def movePlayer(app, direction):
 
 def moveIsLegal(app, direction): 
     if (app.board[app.playerPos[0]+direction[0]][app.playerPos[1]+direction[1]] 
-        == 0): 
+        == 0 or 
+        app.board[app.playerPos[0]+direction[0]][app.playerPos[1]+direction[1]]
+        == 4): 
         return True
     return False
 
@@ -176,16 +197,34 @@ def policeHeuristics(app, police):
 
 def getPoliceDirection(app, police): 
     heuristics = policeHeuristics(app, police)
-    bestHeuristic = None
-    bestDirection = None
-    for direction in heuristics: 
-        if bestHeuristic == None: 
-            bestHeuristic = heuristics[direction]
-            bestDirection = direction
-        elif heuristics[direction] < bestHeuristic: 
-            bestHeuristic = heuristics[direction]
-            bestDirection = direction
-    return bestDirection
+    if len(heuristics) == 0: # no possible moves 
+        return None
+    elif isRandomZone(app, police): # within 4 tiles = random police direction
+        possibleDirections = []
+        for direction in heuristics: 
+            possibleDirections.append(direction)
+        randDirection = random.randint(0, len(possibleDirections)-1)
+        return possibleDirections[randDirection]
+    else: 
+        bestHeuristic = None
+        bestDirection = None
+        for direction in heuristics: 
+            if bestHeuristic == None: 
+                bestHeuristic = heuristics[direction]
+                bestDirection = direction
+            elif heuristics[direction] < bestHeuristic: 
+                bestHeuristic = heuristics[direction]
+                bestDirection = direction
+        return bestDirection
+
+def isRandomZone(app, police): 
+    policeX = police[0]
+    policeY = police[1] 
+    playerX = app.playerPos[0]
+    playerY = app.playerPos[1]
+    if(math.sqrt((policeX - playerX)**2 + (policeY - playerY)**2) <= 4): 
+        return True
+    return False
 
 def movePolice1(app): 
     direction = getPoliceDirection(app, app.police1)
@@ -197,6 +236,8 @@ def movePolice1(app):
         app.police1_direction = [1, 0] 
     elif direction == "down": 
         app.police1_direction = [-1, 0] 
+    elif direction == None: 
+        app.police1_direction = [0, 0] 
     app.police1[0] += app.police1_direction[0]
     app.police1[1] += app.police1_direction[1]
 
@@ -210,6 +251,8 @@ def movePolice2(app):
         app.police2_direction = [1, 0] 
     elif direction == "down": 
         app.police2_direction = [-1, 0] 
+    elif direction == None: 
+        app.police2_direction = [0, 0] 
     app.police2[0] += app.police2_direction[0]
     app.police2[1] += app.police2_direction[1]
 
@@ -223,6 +266,8 @@ def movePolice3(app):
         app.police3_direction = [1, 0] 
     elif direction == "down": 
         app.police3_direction = [-1, 0] 
+    elif direction == None: 
+        app.police3_direction = [0, 0] 
     app.police3[0] += app.police3_direction[0]
     app.police3[1] += app.police3_direction[1]
 
@@ -247,7 +292,7 @@ def redrawAll(app, canvas):
         drawGameOver(app, canvas)
 
 def playGame():
-    grid = generateGrid(5)
+    grid = generateGrid(6)
     rows = len(grid)
     cols = len(grid[0])
 
