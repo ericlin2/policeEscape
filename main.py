@@ -53,6 +53,14 @@ def appStarted(app):
     app.board[app.police1[0]][app.police1[1]] = 3
     app.police1_direction = None
 
+    app.police2 = [app.rows - 2, 1]
+    app.board[app.police2[0]][app.police2[1]] = 3
+    app.police2_direction = None
+
+    app.police3 = [1, app.cols - 2]
+    app.board[app.police3[0]][app.police3[1]] = 3
+    app.police3_direction = None
+
     app.isGameOver = False
     app.timerDelay = 300
 
@@ -94,16 +102,26 @@ def timerFired(app):
         movePlayer(app, app.playerDirection)
         app.board[app.playerPos[0]][app.playerPos[1]] = 2
 
-        #police moving 
+        #police1 moving 
         app.board[app.police1[0]][app.police1[1]] = 0
         movePolice1(app)
         app.board[app.police1[0]][app.police1[1]] = 3
+
+        #police2 moving 
+        app.board[app.police2[0]][app.police2[1]] = 0
+        movePolice2(app)
+        app.board[app.police2[0]][app.police2[1]] = 3
+
+        #police3 moving
+        app.board[app.police3[0]][app.police3[1]] = 0
+        movePolice3(app)
+        app.board[app.police3[0]][app.police3[1]] = 3
 
         # score 
         app.score += 5
         if(checkIfCaught(app)): 
             app.isGameOver = True 
-    print(app.isGameOver)
+    #print(app.isGameOver)
 
 def movePlayer(app, direction): 
     if(direction == None): 
@@ -145,15 +163,15 @@ def policeHeuristics(app, police):
     heuristics = dict()
 
     for move in moves:  
-        print(moves[move][0])
-        print(moves[move][1])
-        print(app.board[moves[move][0]][moves[move][1]])
+        #print(moves[move][0])
+        #print(moves[move][1])
+        #print(app.board[moves[move][0]][moves[move][1]])
         if(app.board[moves[move][0]][moves[move][1]] == 0): 
             heuristics[move]=(math.sqrt
                     ((moves[move][0]-app.playerPos[0])**2
                     + (moves[move][1] - app.playerPos[1])**2))
     
-    print(heuristics)
+    #print(heuristics)
     return heuristics
 
 def getPoliceDirection(app, police): 
@@ -182,12 +200,45 @@ def movePolice1(app):
     app.police1[0] += app.police1_direction[0]
     app.police1[1] += app.police1_direction[1]
 
+def movePolice2(app): 
+    direction = getPoliceDirection(app, app.police2)
+    if direction == "left": 
+        app.police2_direction = [0, -1]
+    elif direction == "right": 
+        app.police2_direction = [0, 1]
+    elif direction == "up":
+        app.police2_direction = [1, 0] 
+    elif direction == "down": 
+        app.police2_direction = [-1, 0] 
+    app.police2[0] += app.police2_direction[0]
+    app.police2[1] += app.police2_direction[1]
+
+def movePolice3(app): 
+    direction = getPoliceDirection(app, app.police3)
+    if direction == "left": 
+        app.police3_direction = [0, -1]
+    elif direction == "right": 
+        app.police3_direction = [0, 1]
+    elif direction == "up":
+        app.police3_direction = [1, 0] 
+    elif direction == "down": 
+        app.police3_direction = [-1, 0] 
+    app.police3[0] += app.police3_direction[0]
+    app.police3[1] += app.police3_direction[1]
+
 # game over 
 def checkIfCaught(app): # caught = police is in a neighboring tile to player 
-    if(abs(app.playerPos[0] - app.police1[0]) <= 1 and 
-        abs(app.playerPos[1] - app.police1[1]) <= 1): 
-        return True 
+    row = app.playerPos[0]
+    col = app.playerPos[1]
+    surroundingTiles = {(row+1, col), (row-1, col), (row, col+1), (row, col-1)}
+    for tile in surroundingTiles: 
+        if app.board[tile[0]][tile[1]] == 3: 
+            return True
     return False
+    # if(abs(app.playerPos[0] - app.police1[0]) <= 1 and 
+    #     abs(app.playerPos[1] - app.police1[1]) <= 1): 
+    #     return True 
+    #return False
 
 def redrawAll(app, canvas): 
     drawBoard(app, canvas)
