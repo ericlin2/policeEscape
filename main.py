@@ -67,6 +67,7 @@ def appStarted(app):
     app.isGameOver = False
     app.timerDelay = 300
 
+# powerup 
 def spawnPowerups(app): 
     row = random.randint(0, app.rows - 1)
     col = random.randint(0, app.cols - 1)
@@ -113,13 +114,13 @@ def timerFired(app):
         # player moving
         app.board[app.playerPos[0]][app.playerPos[1]] = 0
         movePlayer(app, app.playerDirection)
+
+        # pickup powerup
         if app.board[app.playerPos[0]][app.playerPos[1]] == 4: 
             app.score += 100
             app.powerup = spawnPowerups(app) 
             app.board[app.powerup[0]][app.powerup[1]] = 4
         app.board[app.playerPos[0]][app.playerPos[1]] = 2
-
-        
 
         #police1 moving 
         app.board[app.police1[0]][app.police1[1]] = 0
@@ -151,7 +152,7 @@ def movePlayer(app, direction):
         app.playerPos[0] -= direction[0]
         app.playerPos[1] -= direction[1]
         return False
-    return True
+    return True 
 
 def moveIsLegal(app, direction): 
     if (app.board[app.playerPos[0]+direction[0]][app.playerPos[1]+direction[1]] 
