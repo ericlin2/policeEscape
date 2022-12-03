@@ -84,7 +84,7 @@ def appStarted(app):
     app.isGameOver = False
     app.timerDelay = 10
 
-# powerup 
+##### POWERUP SPAWN #####
 def spawnPowerups(app): 
     row = random.randint(0, app.rows - 1)
     col = random.randint(0, app.cols - 1)
@@ -93,7 +93,8 @@ def spawnPowerups(app):
     else: 
         return spawnPowerups(app)
 
-# visualizers 
+##### DRAW FUNCTIONS #####
+
 def drawBoard(app, canvas): 
     for row in range(app.rows): 
         for col in range(app.cols): 
@@ -105,17 +106,6 @@ def drawCell(app, canvas, row, col, tileStatus):
     x1 = x0 + app.cellSize
     y1 = y0 + app.cellSize
     color = ''
-    # if(tileStatus == 1): #wall 
-    #     color = 'gray'
-    # elif(tileStatus == 0): 
-    #     color = 'white'
-    # elif(tileStatus == 2): 
-    #     color = 'red'
-    # elif(tileStatus == 3): 
-    #     color = 'black'
-    # elif(tileStatus == 4): 
-    #     color = 'green'
-
     if(tileStatus == 1): #wall 
         color = 'gray'
     elif(tileStatus == 4): 
@@ -132,6 +122,7 @@ def drawGameOver(app, canvas):
     canvas.create_text(app.width/2, app.height/2, fill="black", 
          text= f"Game Over", font=('Helvetica','40','bold'))
 
+##### PLAYER DRAW FUNCTION (smooth) #####
 def drawPlayerSmooth(app, canvas): 
     x0 = app.player_cx - app.cellSize/2
     y0 = app.player_cy - app.cellSize/2 
@@ -139,30 +130,24 @@ def drawPlayerSmooth(app, canvas):
     y1 = app.player_cy + app.cellSize/2
     canvas.create_rectangle(x0, y0, x1, y1, fill='red', outline='black')
 
+#### UPDATE PLAYER LOCATION (smooth) #####
 def movePlayerSmooth(app, direction): 
     if direction == None: 
         return None
     app.player_cx += direction[1]*2.5
     app.player_cy += direction[0]*2.5
 
-    # print(f'player speed: {direction[0]}')
-    # print(f'player speed: {direction[1]}')
     if not moveIsLegal(app, [0,0]): 
         app.player_cx -= direction[1]*2.5
         app.player_cy -= direction[0]*2.5
 
+##### POLICE DRAW FUNCTIONS (smooth) #####
 def drawPolice1Smooth(app, canvas): 
     x0 = app.police1_cx - app.cellSize/2
     y0 = app.police1_cy - app.cellSize/2 
     x1 = app.police1_cx + app.cellSize/2
     y1 = app.police1_cy + app.cellSize/2
     canvas.create_rectangle(x0, y0, x1, y1, fill='black', outline='black')
-
-def movePolice1Smooth(app, direction): 
-    if direction == None: 
-        return None
-    app.police1_cx += direction[1]*2
-    app.police1_cy += direction[0]*2
 
 def drawPolice2Smooth(app, canvas): 
     x0 = app.police2_cx - app.cellSize/2
@@ -171,14 +156,6 @@ def drawPolice2Smooth(app, canvas):
     y1 = app.police2_cy + app.cellSize/2
     canvas.create_rectangle(x0, y0, x1, y1, fill='black', outline='black')
 
-def movePolice2Smooth(app, direction): 
-    if direction == None: 
-        return None
-    app.police2_cx += direction[1]*2
-    app.police2_cy += direction[0]*2
-    # print(f'police speed: {direction[0]}')
-    # print(f'police speed: {direction[1]}')
-
 def drawPolice3Smooth(app, canvas): 
     x0 = app.police3_cx - app.cellSize/2
     y0 = app.police3_cy - app.cellSize/2 
@@ -186,16 +163,28 @@ def drawPolice3Smooth(app, canvas):
     y1 = app.police3_cy + app.cellSize/2
     canvas.create_rectangle(x0, y0, x1, y1, fill='black', outline='black')
 
+##### UPDATE POLICE POSITION (SMOOTH) #####
+def movePolice1Smooth(app, direction): 
+    if direction == None: 
+        return None
+    app.police1_cx += direction[1]*2
+    app.police1_cy += direction[0]*2
+
+def movePolice2Smooth(app, direction): 
+    if direction == None: 
+        return None
+    app.police2_cx += direction[1]*2
+    app.police2_cy += direction[0]*2
+
 def movePolice3Smooth(app, direction): 
     if direction == None: 
         return None
     app.police3_cx += direction[1]*2
     app.police3_cy += direction[0]*2
 
-def windowToGrid(app, cx, cy):
+def windowToGrid(app, cx, cy): # convert smooth location to grid location 
     return [((cy - app.cellSize/2)/app.cellSize), ((cx - app.cellSize/2)/app.cellSize)]
 
-# player movement 
 def timerFired(app):
     if app.isGameOver == False: 
         
@@ -205,7 +194,7 @@ def timerFired(app):
             movePlayer(app, app.playerDirection)
             app.playerDirectionSmooth = app.playerDirection
 
-            # pickup powerup
+            # pick up powerup
             if app.board[app.playerPos[0]][app.playerPos[1]] == 4: 
                 app.score += 100
                 app.powerup = spawnPowerups(app) 
@@ -238,23 +227,12 @@ def timerFired(app):
             app.board[app.police3[0]][app.police3[1]] = 3
         movePolice3Smooth(app, app.police3DirectionSmooth)
 
-
-        # #police2 moving 
-        # app.board[app.police2[0]][app.police2[1]] = 0
-        # movePolice2(app)
-        # app.board[app.police2[0]][app.police2[1]] = 3
-
-        # #police3 moving
-        # app.board[app.police3[0]][app.police3[1]] = 0
-        # movePolice3(app)
-        # app.board[app.police3[0]][app.police3[1]] = 3
-
         # score 
         app.score += 0.1
         if(checkIfCaught(app)): 
             app.isGameOver = True 
-    #print(app.isGameOver)
 
+##### PLAYER FUNCTIONS (unsmooth) #####
 def movePlayer(app, direction): 
     if(direction == None): 
         return None
@@ -274,6 +252,8 @@ def moveIsLegal(app, direction):
         return True
     return False
 
+##### PLAYAER CONTROLS #####
+
 def keyPressed(app, event): 
     if (event.key == 'Left'):
         if moveIsLegal(app, [0, -1]): 
@@ -288,24 +268,19 @@ def keyPressed(app, event):
         if moveIsLegal(app, [-1, 0]):
             app.playerDirection = [-1, 0]
 
-# police movement 
-def policeHeuristics(app, police): 
+##### POLICE FUNCTIONS (pathfinding) #####
+def policeHeuristics(app, police): # a* cost for surrounding tiles of police
     row = police[0]
     col = police[1]
     moves = {"left":[row, col-1], "right":[row, col+1], "up":[row+1, col], "down":[row-1, col]}
-    #moves = [[y, x+1], [y, x-1], [y+1, x], [y-1, x]]
     heuristics = dict()
 
     for move in moves:  
-        #print(moves[move][0])
-        #print(moves[move][1])
-        #print(app.board[moves[move][0]][moves[move][1]])
         if(app.board[moves[move][0]][moves[move][1]] == 0): 
             heuristics[move]=(math.sqrt
                     ((moves[move][0]-app.playerPos[0])**2
                     + (moves[move][1] - app.playerPos[1])**2))
-    
-    #print(heuristics)
+
     return heuristics
 
 def getPoliceDirection(app, police): 
@@ -328,9 +303,9 @@ def getPoliceDirection(app, police):
             elif heuristics[direction] < bestHeuristic: 
                 bestHeuristic = heuristics[direction]
                 bestDirection = direction
-        return bestDirection
+        return bestDirection #returns 'left'/'right'/'up'/'down'
 
-def isRandomZone(app, police): 
+def isRandomZone(app, police): #experimental random zone (not used)
     policeX = police[0]
     policeY = police[1] 
     playerX = app.playerPos[0]
@@ -339,6 +314,7 @@ def isRandomZone(app, police):
         return True
     return False
 
+##### UPDATE POLICE POSITION (UNSMOOTH) *used for pathfinding #####
 def movePolice1(app): 
     direction = getPoliceDirection(app, app.police1)
     if direction == "left": 
@@ -384,26 +360,25 @@ def movePolice3(app):
     app.police3[0] += app.police3_direction[0]
     app.police3[1] += app.police3_direction[1]
 
-# game over 
-def checkIfCaught(app): # caught = police is in a neighboring tile to player 
-    row = app.player_cx
-    col = app.player_cy
-    if(math.sqrt((app.player_cx - app.police1_cx)**2 + (app.player_cy - app.police1_cy)**2) <= app.cellSize): 
+##### GAME OVER #####
+def checkIfCaught(app): # caught = police is less than 1 tile dist from player 
+ 
+    #caught by police1
+    if(math.sqrt((app.player_cx - app.police1_cx)**2 + (app.player_cy - 
+        app.police1_cy)**2) <= app.cellSize): 
         return True 
-    if(math.sqrt((app.player_cx - app.police2_cx)**2 + (app.player_cy - app.police2_cy)**2) <= app.cellSize): 
+
+    #caught by police2
+    if(math.sqrt((app.player_cx - app.police2_cx)**2 + (app.player_cy - 
+        app.police2_cy)**2) <= app.cellSize): 
         return True 
-    if(math.sqrt((app.player_cx - app.police3_cx)**2 + (app.player_cy - app.police3_cy)**2) <= app.cellSize): 
+
+    #caught by police3
+    if(math.sqrt((app.player_cx - app.police3_cx)**2 + (app.player_cy - 
+        app.police3_cy)**2) <= app.cellSize): 
         return True 
+    
     return False
-    # surroundingTiles = {(row+1, col), (row-1, col), (row, col+1), (row, col-1)}
-    # for tile in surroundingTiles: 
-    #     if app.board[tile[0]][tile[1]] == 3: 
-    #         return True
-    # return False
-    # if(abs(app.playerPos[0] - app.police1[0]) <= 1 and 
-    #     abs(app.playerPos[1] - app.police1[1]) <= 1): 
-    #     return True 
-    #return False
 
 def redrawAll(app, canvas): 
     drawBoard(app, canvas)
